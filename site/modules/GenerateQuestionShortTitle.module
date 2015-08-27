@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * ProcessWire 'Hello world' demonstration module
+ *
+ * Demonstrates the Module interface and how to add hooks.
+ * 
+ * See README file for further links regarding module development.
+ * 
+ * ProcessWire 2.x 
+ * Copyright (C) 2014 by Ryan Cramer 
+ * Licensed under GNU/GPL v2, see LICENSE.TXT
+ * 
+ * http://processwire.com
+ *
+ */
+
+  /**
+   * getModuleInfo is a module required by all modules to tell ProcessWire about them
+   *
+   * @return array
+   *
+   */
+
+class GenerateQuestionShortTitle extends WireData implements Module {
+  public static function getModuleInfo() {
+    return array(
+      'title' => 'Generate Question Short Title',
+      'summary' => 'Save a short version of the summary content as title of a question page',
+      'version' => 1,      
+      'singular' => true, 
+      'autoload' => true
+    );
+  }
+
+  public function init() {
+    
+    // $this->pages->addHookBefore('save', $this, 'hookAutoPageName');
+    
+    $this->pages->addHookBefore('save', $this, 'hookAutoPageTitle');
+
+    $this->pages->addHookAfter('added', $this, 'hookAdded'); 
+
+  }
+
+  // public function hookAutoPageName(HookEvent $event) {
+    
+  //   $page = $event->arguments[0];
+
+  //   if( $page->template == "question" ) {
+
+  //     $page->of(false);
+
+  //     $page->name = $page->id;  
+
+  //   }
+  // }
+
+  public function hookAutoPageTitle(HookEvent $event) {
+    
+    $page = $event->arguments[0];
+
+    if( $page->template == "question" ) {
+
+      
+      $page->of(false);
+
+      $page->title = "No title";
+
+      $txt = $page->question_title;
+
+      if($txt != "") {
+        $page->title = strlen($txt) > 255 ? substr($txt,0,140)."..." : $txt;
+      }
+      
+      $page->name = $page->id;
+
+      $this->message("Question added or modified!");
+
+    }
+  }
+
+
+  public function hookAdded(HookEvent $event) {
+    // this function only called after a new page added
+    $page = $event->object;
+    
+    if( $page->template == "question" ) {
+
+      $page->of(false);
+
+      $page->set('name',$page->id);  
+
+    }
+  }
+  
+
+}
